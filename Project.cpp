@@ -11,7 +11,7 @@ struct Course {
     int duration;
     int weeklyHours;
 };
-//Lecture structure
+//Lecture
 struct Lecture {
     int id;      
     int courseId;
