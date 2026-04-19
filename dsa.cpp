@@ -170,5 +170,116 @@ int main() {
                   << " (Year " << lectures[i].batchYear << " Sec " << lectures[i].section << ")\n";
         }
     }
+
+     //Assign Room
+    vector<string> availableRooms = {
+        "Room 101", "Room 102", "Room 103", "Room 104", "Room 105", 
+        "Lab A", "Lab B", "Chem Lab", "Comp Lab", "Media Room"
+    };
+
+    for (int i = 0; i < numClasses; i++) {
+        if (lectures[i].assignedDay == -1) continue;
+        
+        int day = lectures[i].assignedDay;
+        int timeslot = lectures[i].assignedTimeslot;
+        int duration = lectures[i].duration;
+        
+        for (const string& room : availableRooms) {
+            if (isFree(roomBusy, room, day, timeslot, duration, maxSlotsPerDay)) {
+                lectures[i].assignedRoom = room;
+                markBusy(roomBusy, room, day, timeslot, duration, totalSlots, maxSlotsPerDay); // mark the room as occupied for this time range!
+                break;
+            }
+        }
+        if (lectures[i].assignedRoom == "") {
+           lectures[i].assignedRoom = "TBA Room";
+        }
+    }
+
+    //Print Timetable
+    vector<string> dayNames = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
+    vector<string> sectionsToPrint = {"A", "B"};
+    
+    for (int year = 1; year <= 4; year++) {
+        for (string sec : sectionsToPrint) {
+            bool hasClasses = false;
+            for (const auto& l : lectures) {
+                if (l.batchYear == year && l.section == sec) { hasClasses = true; break; }
+            }
+            
+            if (!hasClasses) continue;
+
+            cout << "\n====================== YEAR " << year << " | SECTION " << sec << " TIMETABLE ======================\n";
+            
+            for (int day = 0; day < totalDays; day++) {
+                cout << "\n----------------------------------- " << dayNames[day] << " -----------------------------------\n";
+                int maxTimeslot = -1;
+                for (int i = 0; i < numClasses; i++) {
+                    if (lectures[i].batchYear == year && lectures[i].section == sec && lectures[i].assignedDay == day) {
+                        int endSlot = lectures[i].assignedTimeslot + lectures[i].duration - 1;
+                        if (endSlot > maxTimeslot) {
+                            maxTimeslot = endSlot;
+                        }
+                    }
+                }
+                
+                if (maxTimeslot == -1) {
+                    cout << "  No classes scheduled.\n";
+                    continue; 
+                }
+
+                cout << left << setw(15) << "Time" 
+                     << "| " << setw(25) << "Subject" 
+                     << "| " << setw(20) << "Teacher" 
+                     << "| " << setw(15) << "Room" << "\n";
+                cout << "--------------------------------------------------------------------------------\n";
+                
+                for (int t = 0; t <= maxTimeslot; t++) {
+                    bool foundClass = false;
+                    
+                    for (int i = 0; i < numClasses; i++) {
+                        if (lectures[i].batchYear != year || lectures[i].section != sec || lectures[i].assignedDay != day) continue;
+                        
+                        int startSlot = lectures[i].assignedTimeslot;
+                        int endSlot = startSlot + lectures[i].duration - 1;
+                        
+                        if (t >= startSlot && t <= endSlot) {
+                            string timeStr = to_string(9+t) + ":00 AM"; 
+                            if (9+t > 12) timeStr = to_string(9+t-12) + ":00 PM";
+                            if (9+t == 12) timeStr = "12:00 PM";
+                            
+                            cout << left << setw(15) << timeStr 
+                                 << "| " << setw(25) << lectures[i].subjectName 
+                                 << "| " << setw(20) << lectures[i].teacherName 
+                                 << "| " << setw(15) << lectures[i].assignedRoom << "\n";
+                            
+                            foundClass = true;
+                            break; 
+                        }
+                    }
+                    
+                    if (!foundClass) {
+                        string timeStr = to_string(9+t) + ":00 AM";
+                        if (9+t > 12) timeStr = to_string(9+t-12) + ":00 PM";
+                        if (9+t == 12) timeStr = "12:00 PM";
+                         
+                        if (t == 4) {
+                            cout << left << setw(15) << timeStr 
+                                 << "| " << setw(25) << "== LUNCH BREAK ==" 
+                                 << "| " << setw(20) << "All" 
+                                 << "| " << setw(15) << "Cafeteria" << "\n";
+                        } else {
+                            cout << left << setw(15) << timeStr 
+                                 << "| " << setw(25) << "-- FREE --" 
+                                 << "| " << setw(20) << "-" 
+                                 << "| " << setw(15) << "-" << "\n";
+                        }
+                    }
+                }
+            }
+            cout << "================================================================================\n";
+        }
+    }
+    
     return 0;
 }
