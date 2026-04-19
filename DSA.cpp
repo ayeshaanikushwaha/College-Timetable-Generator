@@ -1,7 +1,7 @@
 #include<bits/stdc++.h>
 
 using namespace std;
-
+    
     vector<Lecture> lectures;
     int lectureIdCounter = 0;
     
@@ -81,3 +81,4 @@ using namespace std;
         }
     }
 
+   
